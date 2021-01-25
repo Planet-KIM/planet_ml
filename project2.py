@@ -1,5 +1,7 @@
 import numpy as np
 from project1 import load_housing_data
+from zlib import crc32
+import pandas as pd
 
 housing = load_housing_data()
 
@@ -20,12 +22,10 @@ train_set, test_set =  split_train_test(housing, 0.2)
 print(len(train_set))
 print(len(test_set))
 
-from zlib import crc32
-
 # 각 샘플마다 식별자의 해시 값을 계산하여 해시 최댓 값의 20% 작거나
 # 같은 샘플만 테스트 세트로 보낼 수 있습니다.
 def test_set_check(identifier, test_ratio):
-    return crc_32(np.int64(identifier)) & 0xffffffff < test_ratio * 2**32
+    return crc32(np.int64(identifier)) & 0xffffffff < test_ratio * 2**32
 
 def split_train_test_by_id(data, test_ratio, id_column):
     
