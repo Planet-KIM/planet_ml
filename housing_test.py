@@ -116,3 +116,20 @@ X = imputer.transform(housing_num)
 # 변형된 특성들이 들어있는 Numpy Array
 housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing_num.index)
 print(housing_tr)
+
+# 텍스트 특성
+housing_cat = housing[["ocean_proximity"]]
+print(housing_cat.head(10))
+
+from sklearn.preprocessing import OrdinalEncoder
+ordinal_encoder =  OrdinalEncoder()
+housing_cat_encoded = ordinal_encoder.fit_transform(housing_cat)
+print(housing_cat_encoded[:10])
+
+print(ordinal_encoder.categories_)
+
+from sklearn.preprocessing import OneHotEncoder
+
+cat_encoder = OneHotEncoder()
+housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
+print(housing_cat_1hot)
