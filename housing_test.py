@@ -91,3 +91,28 @@ housing["population_per_household"] = housing["population"] / housing["household
 
 corr_matrix = housing.corr()
 print(corr_matrix["median_house_value"].sort_values(ascending=False))
+
+###### Ready to make datasets ######
+housing = strat_train_set.drop("median_house_value", axis=1)
+housing_labels = strat_train_set["median_house_value"].copy()
+
+# 특성에 값이 없을 때 이를 처리해주는 방법
+housing.dropna(subset=["total_bedrooms"]) # 방법 1 - (해당 구역을 제거합니다.)
+housing.drop("total_bedrooms", axis=1) # 방법 2 - (전체 특성을 삭제합니다.)
+median = housing["total_bedrooms"].median() # 방법 3 (누락된 값을 채우는 방법)
+housing["total_bedrooms"].fillna(median, inplace=True)
+
+# 누락된 값을 손쉽게 다루게 해주는 메소드
+from sklearn.impute import SimpleImputer
+imputer = SimpleImputer(strategy="median")
+
+housing_num = housing.drop("ocean_proximity", axis=1)
+imputer.fit(housing_num)
+# 중간 값을 계산해서 그 결과를 밑의 함수에 저장
+print(imputer.statistics_)
+print(housing_num.median().values)
+
+X = imputer.transform(housing_num)
+# 변형된 특성들이 들어있는 Numpy Array
+housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing_num.index)
+print(housing_tr)
