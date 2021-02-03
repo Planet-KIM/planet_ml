@@ -5,68 +5,98 @@ from project1 import *
 # 행의 개수가 같은 여러 개의 데이터 셋을 넘겨 같은 인덱스를 기반으로 나눌 수 있습니다.
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 
-fetch_housing_data()
+def test_Housing(plot_housing=True):
 
-housing = load_housing_data()
-print(housing.head())
-print(housing.info())
-# 숫자형 특성의 요약정보를 보여줍니다.
-print(housing.describe())
-
-#housing.hist(bins=50, figsize=(20,15))
-#plt.show()
-
-housing = load_housing_data()
-
-train_set, test_set = split_train_test(housing, 0.2)
-
-print(len(train_set))
-print(len(test_set))
-
-# 'index' 열이 추가된 데이터프레임이 반환됩니다.
-housing_with_id = housing.reset_index()
-
-train_set, test_set = split_train_test_by_id(housing_with_id, 0.2, "index")
-
-# 위도와 경도는 안정적인 데이터임으로 이를 이용해서
-# 고유적인 데이터를 생성합니다.
-housing_with_id["id"] = housing["longitude"] * 1000 + housing["latitude"]
-train_set, test_set = split_train_test_by_id(housing_with_id, 0.2, "id")
-
-train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
-
-# 카테고리 5개를 가진 소득 카테고리 특성을 만듭니다.
-housing["income_cat"] = pd.cut(housing["median_income"],
-                               bins=[0., 1.5, 3.0, 4.5, 6., np.inf],
-                               labels=[1, 2, 3, 4, 5])
-
-#housing["income_cat"].hist()
-#plt.show()
-
-split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-
-for train_index, test_index in split.split(housing, housing["income_cat"]):
-    strat_train_set = housing.loc[train_index]
-    strat_test_set = housing.loc[test_index]
-    print(strat_test_set["income_cat"].value_counts() / len(strat_test_set))
-
-for set_ in (strat_train_set, strat_test_set):
-    set_.drop("income_cat", axis=1, inplace=True)
+    fetch_housing_data()
+    housing = load_housing_data()
     
-# 훈련세트를 손상하지 않게 하기위해서 복사
-housing = strat_train_set.copy()
-#housing.plot(kind="scatter", x="longitude", y="latitude")
-#plt.show()
+    print(housing.head())
+    print(housing.info())
 
-#housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.1)
-#plt.show()
+    # 숫자형 특성의 요약정보를 보여줍니다.
+    print(housing.describe())
 
-# 인구 밀집도와 가격의 연관성을 그래프로 출력하기
-#housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.4,
-#             s=housing["population"]/100, label="population", figsize=(10, 7),
-#             c="median_house_value", cmap=plt.get_cmap("jet"), colorbar=True,)
-#plt.legend()
-#plt.show()
+    if plot_housing is True:
+        housing.hist(bins=50, figsize=(20,15))
+        plt.show()
+    else:
+        pass
+
+    return housing
+
+housing = custom_Housing(plot_housing=False)
+
+
+def split_housing(plot_housing=True):
+    
+    housing = load_housing_data()
+    train_set, test_set = split_train_test(housing, 0.2)
+
+    print(len(train_set))
+    print(len(test_set))
+
+    # 'index' 열이 추가된 데이터프레임이 반환됩니다.
+    housing_with_id = housing.reset_index()
+
+    train_set, test_set = split_train_test_by_id(housing_with_id, 0.2, "index")
+
+    # 위도와 경도는 안정적인 데이터임으로 이를 이용해서
+    # 고유적인 데이터를 생성합니다.
+    housing_with_id["id"] = housing["longitude"] * 1000 + housing["latitude"]
+    train_set, test_set = split_train_test_by_id(housing_with_id, 0.2, "id")
+
+    train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
+
+    # 카테고리 5개를 가진 소득 카테고리 특성을 만듭니다.
+    housing["income_cat"] = pd.cut(housing["median_income"],
+                                   bins=[0., 1.5, 3.0, 4.5, 6., np.inf],
+                                   labels=[1, 2, 3, 4, 5])
+
+    if plot_housing is True:
+        housing["income_cat"].hist()
+        plt.show()
+    else:
+        pass
+
+    return housing
+
+housing = split_housing(plot_housing=False)
+
+def stratified_Housing(plot_housing=True):
+
+    split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+
+    for train_index, test_index in split.split(housing, housing["income_cat"]):
+        strat_train_set = housing.loc[train_index]
+        strat_test_set = housing.loc[test_index]
+        print(strat_test_set["income_cat"].value_counts() / len(strat_test_set))
+
+    for set_ in (strat_train_set, strat_test_set):
+        set_.drop("income_cat", axis=1, inplace=True)
+    
+    if plot_housing is True:
+        # 훈련세트를 손상하지 않게 하기위해서 복사
+        housing = strat_train_set.copy()
+        housing.plot(kind="scatter", x="longitude", y="latitude")
+        plt.show()
+
+        housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.1)
+        plt.show()
+
+        # 인구 밀집도와 가격의 연관성을 그래프로 출력하기
+        housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.4,
+                 s=housing["population"]/100, label="population", figsize=(10, 7),
+                 c="median_house_value", cmap=plt.get_cmap("jet"), colorbar=True,)
+        plt.legend()
+        plt.show()
+
+    else:
+        pass
+
+    return housing
+
+
+def corr_housing():
 
 print("\n+ 표준 상관계수 구하기 +")
 # 표준 상관계수 구하기
