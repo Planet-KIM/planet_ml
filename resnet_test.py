@@ -82,3 +82,27 @@ class ResNet(tf.keras.Model):
         x = self.dense1(x)
 
         return self.dense2(x)
+
+# 학습, 테스트 루프 정의하기
+@tf.function
+def train_step(model, images, labels, loss_object, optimizer, train_loss, train_accuracy):
+
+    with tf.GradientTape() as tape:
+
+        predictions = model(images, training=True)
+        loss = loss_object(labels, predictions)
+
+    gradients = tape.gradient(loss, model.trainable_variable)
+
+    optimizer.apply_gradients(zip(gradients, model.trainable_variable))
+    train_loss(loss)
+    train_accuracy(labels, predictions)
+
+@tf.function
+def test_step(model, images, labels, loss_object, test_loss, test_accuracy):
+
+    predictions = model(images, training=False)
+
+    t_lost = loss_object(labels, predictions)
+    test_loss(t_lost)
+    test_accuracy(labels, predictions)
