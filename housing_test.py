@@ -24,8 +24,6 @@ def test_housing(plot_housing=True):
 
     return housing
 
-housing = test_housing(plot_housing=False)
-
 
 def split_housing(plot_housing=True):
     
@@ -60,7 +58,6 @@ def split_housing(plot_housing=True):
 
     return housing
 
-housing = split_housing(plot_housing=False)
 
 def stratified_Housing(housing, plot_housing=True):
 
@@ -95,9 +92,9 @@ def stratified_Housing(housing, plot_housing=True):
 
     return strat_train_set, strat_test_set
 
-strat_train_set, strat_test_set = stratified_Housing(housing=housing, plot_housing=False)
 
 from pandas.plotting import scatter_matrix
+
 
 def corr_housing(housing, plot_housing=True):
 
@@ -120,7 +117,6 @@ def corr_housing(housing, plot_housing=True):
 
     return housing
 
-housing = corr_housing(housing=housing, plot_housing=False)
 
 def make_speacial(housing):
     # 필요한 특성 조합 만들기.
@@ -133,7 +129,6 @@ def make_speacial(housing):
 
     return housing
 
-houisng = make_speacial(housing=housing)
 
 # 누락된 값을 손쉽게 다루게 해주는 메소드
 from sklearn.impute import SimpleImputer
@@ -169,7 +164,6 @@ def dataset(housing):
     housing_cat = housing[["ocean_proximity"]]
     return housing, housing_cat
 
-housing, housing_cat = dataset(housing=houisng)
 
 def ordinal_housing(housing_cat):
 
@@ -180,9 +174,7 @@ def ordinal_housing(housing_cat):
     print(housing_cat_encoded[:10])
 
     print(ordinal_encoder.categories_)
-    return housing_cat
-
-ordinal_housing(housing_cat=housing_cat)
+    return housing_cat_encoded
 
 def onehot_housing(housing_cat):
     
@@ -190,7 +182,16 @@ def onehot_housing(housing_cat):
     housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
     print(housing_cat_1hot)
     housing_cat_1hot.toarray()
-    
+
     print(cat_encoder.categories_)
-    
-onehot_housing(housing_cat=housing_cat)
+    return housing_cat_1hot
+
+
+housing = test_housing(plot_housing=False)
+housing = split_housing(plot_housing=False)
+strat_train_set, strat_test_set = stratified_Housing(housing=housing, plot_housing=False)
+housing = corr_housing(housing=housing, plot_housing=False)
+houisng = make_speacial(housing=housing)
+housing, housing_cat = dataset(housing=houisng)
+housing_cat_encoded = ordinal_housing(housing_cat=housing_cat)
+housing_cat_1hot = onehot_housing(housing_cat=housing_cat)
