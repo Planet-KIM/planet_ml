@@ -186,6 +186,7 @@ def onehot_housing(housing_cat):
     print(cat_encoder.categories_)
     return housing_cat_1hot
 
+from custom_transform import CombinedAttributesAdder
 
 housing = test_housing(plot_housing=False)
 housing = split_housing(plot_housing=False)
@@ -195,3 +196,7 @@ houisng = make_speacial(housing=housing)
 housing, housing_cat = dataset(housing=houisng)
 housing_cat_encoded = ordinal_housing(housing_cat=housing_cat)
 housing_cat_1hot = onehot_housing(housing_cat=housing_cat)
+
+
+attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
+housing_extra_attribs = attr_adder.transform(housing.values)
