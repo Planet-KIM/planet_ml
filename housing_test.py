@@ -5,7 +5,7 @@ from project1 import *
 # 행의 개수가 같은 여러 개의 데이터 셋을 넘겨 같은 인덱스를 기반으로 나눌 수 있습니다.
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 
-def test_Housing(plot_housing=True):
+def test_housing(plot_housing=True):
 
     fetch_housing_data()
     housing = load_housing_data()
@@ -24,7 +24,7 @@ def test_Housing(plot_housing=True):
 
     return housing
 
-housing = custom_Housing(plot_housing=False)
+housing = test_housing(plot_housing=False)
 
 
 def split_housing(plot_housing=True):
@@ -62,7 +62,7 @@ def split_housing(plot_housing=True):
 
 housing = split_housing(plot_housing=False)
 
-def stratified_Housing(plot_housing=True):
+def stratified_Housing(housing, plot_housing=True):
 
     split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 
@@ -93,73 +93,104 @@ def stratified_Housing(plot_housing=True):
     else:
         pass
 
-    return housing
+    return strat_train_set, strat_test_set
 
-
-def corr_housing():
-
-print("\n+ 표준 상관계수 구하기 +")
-# 표준 상관계수 구하기
-corr_matrix = housing.corr()
-print(corr_matrix["median_house_value"].sort_values(ascending=False))
+strat_train_set, strat_test_set = stratified_Housing(housing=housing, plot_housing=False)
 
 from pandas.plotting import scatter_matrix
 
-attributes = ["median_house_value", "median_income", "total_rooms", "housing_median_age"]
+def corr_housing(housing, plot_housing=True):
 
-# 숫장형 특성 사이에 산점도를 그래주는 메소드
-#scatter_matrix(housing[attributes], figsize=(12, 8))
-#plt.show()
+    print("\n+ 표준 상관계수 구하기 +")
+    # 표준 상관계수 구하기
+    corr_matrix = housing.corr()
+    print(corr_matrix["median_house_value"].sort_values(ascending=False))
 
-#housing.plot(kind="scatter", x="median_income", y="median_house_value", alpha=0.1)
-#plt.show()
+    attributes = ["median_house_value", "median_income", "total_rooms", "housing_median_age"]
 
-# 필요한 특성 조합 만들기.
-housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
-housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
-housing["population_per_household"] = housing["population"] / housing["households"]
+    if plot_housing is True:
+        # 숫장형 특성 사이에 산점도를 그래주는 메소드
+        scatter_matrix(housing[attributes], figsize=(12, 8))
+        #plt.show()
 
-corr_matrix = housing.corr()
-print(corr_matrix["median_house_value"].sort_values(ascending=False))
+        housing.plot(kind="scatter", x="median_income", y="median_house_value", alpha=0.1)
+        plt.show()
+    else:
+        pass
 
-###### Ready to make datasets ######
-housing = strat_train_set.drop("median_house_value", axis=1)
-housing_labels = strat_train_set["median_house_value"].copy()
+    return housing
 
-# 특성에 값이 없을 때 이를 처리해주는 방법
-housing.dropna(subset=["total_bedrooms"]) # 방법 1 - (해당 구역을 제거합니다.)
-housing.drop("total_bedrooms", axis=1) # 방법 2 - (전체 특성을 삭제합니다.)
-median = housing["total_bedrooms"].median() # 방법 3 (누락된 값을 채우는 방법)
-housing["total_bedrooms"].fillna(median, inplace=True)
+housing = corr_housing(housing=housing, plot_housing=False)
+
+def make_speacial(housing):
+    # 필요한 특성 조합 만들기.
+    housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
+    housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
+    housing["population_per_household"] = housing["population"] / housing["households"]
+
+    corr_matrix = housing.corr()
+    print(corr_matrix["median_house_value"].sort_values(ascending=False))
+
+    return housing
+
+houisng = make_speacial(housing=housing)
 
 # 누락된 값을 손쉽게 다루게 해주는 메소드
 from sklearn.impute import SimpleImputer
-imputer = SimpleImputer(strategy="median")
-
-housing_num = housing.drop("ocean_proximity", axis=1)
-imputer.fit(housing_num)
-# 중간 값을 계산해서 그 결과를 밑의 함수에 저장
-print(imputer.statistics_)
-print(housing_num.median().values)
-
-X = imputer.transform(housing_num)
-# 변형된 특성들이 들어있는 Numpy Array
-housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing_num.index)
-print(housing_tr)
-
-# 텍스트 특성
-housing_cat = housing[["ocean_proximity"]]
-print(housing_cat.head(10))
-
 from sklearn.preprocessing import OrdinalEncoder
-ordinal_encoder =  OrdinalEncoder()
-housing_cat_encoded = ordinal_encoder.fit_transform(housing_cat)
-print(housing_cat_encoded[:10])
-
-print(ordinal_encoder.categories_)
-
 from sklearn.preprocessing import OneHotEncoder
 
-cat_encoder = OneHotEncoder()
-housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
-print(housing_cat_1hot)
+def dataset(housing):
+    ###### Ready to make datasets ######
+    housing = strat_train_set.drop("median_house_value", axis=1)
+    housing_labels = strat_train_set["median_house_value"].copy()
+
+    # 특성에 값이 없을 때 이를 처리해주는 방법
+    housing.dropna(subset=["total_bedrooms"]) # 방법 1 - (해당 구역을 제거합니다.)
+    housing.drop("total_bedrooms", axis=1) # 방법 2 - (전체 특성을 삭제합니다.)
+    median = housing["total_bedrooms"].median() # 방법 3 (누락된 값을 채우는 방법)
+    housing["total_bedrooms"].fillna(median, inplace=True)
+
+    imputer = SimpleImputer(strategy="median")
+
+    housing_num = housing.drop("ocean_proximity", axis=1)
+    imputer.fit(housing_num)
+
+    # 중간 값을 계산해서 그 결과를 밑의 함수에 저장
+    print(imputer.statistics_)
+    print(housing_num.median().values)
+
+    X = imputer.transform(housing_num)
+    # 변형된 특성들이 들어있는 Numpy Array
+    housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing_num.index)
+    print(housing_tr)
+
+    # 텍스트 특성
+    housing_cat = housing[["ocean_proximity"]]
+    return housing, housing_cat
+
+housing, housing_cat = dataset(housing=houisng)
+
+def ordinal_housing(housing_cat):
+
+    print(housing_cat.head(10))
+
+    ordinal_encoder =  OrdinalEncoder()
+    housing_cat_encoded = ordinal_encoder.fit_transform(housing_cat)
+    print(housing_cat_encoded[:10])
+
+    print(ordinal_encoder.categories_)
+    return housing_cat
+
+ordinal_housing(housing_cat=housing_cat)
+
+def onehot_housing(housing_cat):
+    
+    cat_encoder = OneHotEncoder()
+    housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
+    print(housing_cat_1hot)
+    housing_cat_1hot.toarray()
+    
+    print(cat_encoder.categories_)
+    
+onehot_housing(housing_cat=housing_cat)
