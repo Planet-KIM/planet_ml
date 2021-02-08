@@ -162,7 +162,7 @@ def dataset(housing):
 
     # 텍스트 특성
     housing_cat = housing[["ocean_proximity"]]
-    return housing, housing_cat
+    return housing, housing_num, housing_cat
 
 
 def ordinal_housing(housing_cat):
@@ -193,10 +193,29 @@ housing = split_housing(plot_housing=False)
 strat_train_set, strat_test_set = stratified_Housing(housing=housing, plot_housing=False)
 housing = corr_housing(housing=housing, plot_housing=False)
 houisng = make_speacial(housing=housing)
-housing, housing_cat = dataset(housing=houisng)
+housing, housing_num, housing_cat = dataset(housing=houisng)
 housing_cat_encoded = ordinal_housing(housing_cat=housing_cat)
 housing_cat_1hot = onehot_housing(housing_cat=housing_cat)
 
 
 attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
 housing_extra_attribs = attr_adder.transform(housing.values)
+
+# 변환 파이프라인
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+def pipeline_change(housing_num):
+
+    num_pipeline = Pipeline([
+            ('imputer', SimpleImputer(strategy="median")),
+            ('attribs_adder', CombinedAttributesAdder()),
+            ('std_scaler', StandardScaler()),
+        ])
+
+    housing_num_tr = num_pipeline.fit_transform(housing_num)
+    
+    return housing_num_tr
+
+housing_num_tr = pipeline_change(housing_num=housing_num)
+print(housing_num_tr)
