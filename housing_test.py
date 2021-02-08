@@ -207,6 +207,7 @@ from sklearn.preprocessing import StandardScaler
 
 def pipeline_change(housing_num):
 
+    # 밀집 행렬을 반환
     num_pipeline = Pipeline([
             ('imputer', SimpleImputer(strategy="median")),
             ('attribs_adder', CombinedAttributesAdder()),
@@ -215,7 +216,28 @@ def pipeline_change(housing_num):
 
     housing_num_tr = num_pipeline.fit_transform(housing_num)
     
-    return housing_num_tr
+    return num_pipeline, housing_num_tr
 
-housing_num_tr = pipeline_change(housing_num=housing_num)
-print(housing_num_tr)
+num_pipeline, housing_num_tr = pipeline_change(housing_num=housing_num)
+
+
+# 하나의 변환기로 각 열마다 적절한 변환을 적용하여 모든 열을 처리
+from sklearn.compose import ColumnTransformer
+
+def ColumnTransform_test(housing, housing_num, num_pipeline):
+
+    num_attribs = list(housing_num)
+    cat_attribs = ["ocean_proximity"]
+
+    full_pipeline =  ColumnTransformer([
+           ('num', num_pipeline, num_attribs),
+           ('cat', OneHotEncoder(), cat_attribs), # 희소행렬 반환
+        ])
+
+    housing_prepared = full_pipeline.fit_transform(housing)
+
+    return housing_prepared
+
+
+housing_prepared = ColumnTransform_test(housing, housing_num, num_pipeline)
+
