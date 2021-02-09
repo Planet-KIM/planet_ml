@@ -162,7 +162,7 @@ def dataset(housing):
 
     # 텍스트 특성
     housing_cat = housing[["ocean_proximity"]]
-    return housing, housing_num, housing_cat
+    return housing, housing_labels, housing_num, housing_cat
 
 
 def ordinal_housing(housing_cat):
@@ -193,7 +193,7 @@ housing = split_housing(plot_housing=False)
 strat_train_set, strat_test_set = stratified_Housing(housing=housing, plot_housing=False)
 housing = corr_housing(housing=housing, plot_housing=False)
 houisng = make_speacial(housing=housing)
-housing, housing_num, housing_cat = dataset(housing=houisng)
+housing, housing_labels, housing_num, housing_cat = dataset(housing=houisng)
 housing_cat_encoded = ordinal_housing(housing_cat=housing_cat)
 housing_cat_1hot = onehot_housing(housing_cat=housing_cat)
 
@@ -228,7 +228,8 @@ def ColumnTransform_test(housing, housing_num, num_pipeline):
 
     num_attribs = list(housing_num)
     cat_attribs = ["ocean_proximity"]
-
+    
+    # 최종행렬의 밀집 정도를 추정
     full_pipeline =  ColumnTransformer([
            ('num', num_pipeline, num_attribs),
            ('cat', OneHotEncoder(), cat_attribs), # 희소행렬 반환
@@ -236,8 +237,29 @@ def ColumnTransform_test(housing, housing_num, num_pipeline):
 
     housing_prepared = full_pipeline.fit_transform(housing)
 
-    return housing_prepared
+    return full_pipeline, housing_prepared
 
 
-housing_prepared = ColumnTransform_test(housing, housing_num, num_pipeline)
+full_pipeline, housing_prepared = ColumnTransform_test(housing, housing_num, num_pipeline)
 
+
+from sklearn.linear_model import LinearRegression
+
+lin_reg = LinearRegression()
+lin_reg.fit(housing_prepared, housing_labels)
+
+some_data = housing.iloc[:5]
+some_labels = housing_labels.iloc[:5]
+some_data_prepared = full_pipeline.transform(some_data)
+
+# 아직은 오차가 심함
+print("예측 : ", lin_reg.predict(some_data_prepared))
+print("라벨 : ", list(some_labels))
+
+from sklearn.metrics import mean_squared_error
+
+housing_predictions = lin_reg.predict(housing_prepared)
+lin_mse = mean_squared_error(housing_labels, housing_predictions)
+lin_rsme = np.sqrt(lin_mse)
+
+print(lin_rsme)
